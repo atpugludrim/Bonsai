@@ -335,7 +335,7 @@ def transform_features_with_tree(data, ego_graph_vmed, nnodes, train):
     # features_normalized = scaler.fit_transform(features)
 
     # Train a Decision Tree Classifier
-    clf = DecisionTreeClassifier(max_depth=50) #marji meri
+    clf = DecisionTreeClassifier(max_depth=50) 
     clf.fit(features, labels)
     predictions = clf.predict(features)
     
