@@ -68,25 +68,17 @@ class GCN_inductive(nn.Module):
         self.with_relu = with_relu
         self.layers = nn.ModuleList()
         if nlayers == 1:
-            self.layers.append(
-                GraphConvolution(indim, outdim, with_bias=with_bias)
-            )
+            self.layers.append(GraphConvolution(indim, outdim, with_bias=with_bias))
         else:
             if with_bn:
                 self.bns = torch.nn.ModuleList()
                 self.bns.append(nn.BatchNorm1d(hidim))
-            self.layers.append(
-                GraphConvolution(indim, hidim, with_bias=with_bias)
-            )
+            self.layers.append(GraphConvolution(indim, hidim, with_bias=with_bias))
             for _ in range(nlayers - 2):
-                self.layers.append(
-                    GraphConvolution(hidim, hidim, with_bias=with_bias)
-                )
+                self.layers.append(GraphConvolution(hidim, hidim, with_bias=with_bias))
                 if with_bn:
                     self.bns.append(nn.BatchNorm1d(hidim))
-            self.layers.append(
-                GraphConvolution(hidim, outdim, with_bias=with_bias)
-            )
+            self.layers.append(GraphConvolution(hidim, outdim, with_bias=with_bias))
 
     def forward(self, x, adj):
         for ix, layer in enumerate(self.layers):

@@ -1,3 +1,5 @@
+r"""Utility to load datasets provided by graph saint (flickr, ogbn-arxiv, reddit)
+"""
 import json
 import numpy as np
 import scipy.sparse as sp
@@ -6,7 +8,15 @@ from torch_geometric.data import Data
 from torch_sparse import SparseTensor
 
 
-def load_saint_dataset(name, *, root="datasets"):
+def load_saint_dataset(name: str, *, root: str="datasets") -> Data:
+    r"""Loads Graph Saint provided dataset and converts it into proper
+    torch_geometric.data.Data object.
+
+    Params:
+    name: str - Name of the dataset. One of flickr, ogbn-arxiv, or reddit
+    root: str - Root directory of the dataset.
+    returns: torch_geometric.data.Data
+    """
     with open(f"{root}/{name}/role.json", "r") as jsonfile:
         roles = json.load(jsonfile)
     train_nodes = roles["tr"]
