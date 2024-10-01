@@ -93,7 +93,9 @@ def dist2rknn_sorting(WL_dist: np.ndarray, k: int) -> t.List[int]:
     return sorted_nodes
 
 
-def rknn_sorted2budget_select_merged(sorted_nodes, train, target_size):
+def rknn_sorted2budget_select_merged(
+    sorted_nodes: t.List[int], train: t.List[int], target_size: float
+) -> t.List[int]:
     r"""Only works when features are binary as of now. PubMed and
     ogbn-arxiv might not work. I have made some adaptations. But
     let's see whether they really work.
@@ -542,12 +544,12 @@ def main():
     target_size = float(f"{args.target_size_frac * size_full:.2f}")
     nclasses = len(set(data.y.reshape(-1).tolist()))
 
-    train, test = train_test_split(range(nnodes), test_size=0.2, random_state=42) # overriding teh split
+    train, test = train_test_split(range(nnodes), test_size=0.2, random_state=42)  # overriding the split
     train = np.array(train)
 
     rng = np.random.RandomState(seed=0)
-    idx_train = rng.choice(train, size=int(0.7 * len(train)), replace=False) # making room for validation set
-    idx_val = list(set(range(nnodes)) - set(idx_train).union(set(test))) # validation set
+    idx_train = rng.choice(train, size=int(0.7 * len(train)), replace=False)  # making room for validation set
+    idx_val = list(set(range(nnodes)) - set(idx_train).union(set(test)))  # validation set
     splits = {"train": idx_train, "val": idx_val, "test": test}
     train = idx_train
     log("split done")
@@ -606,7 +608,7 @@ def main():
     log("Creating WL now")
 
     start_time = time.perf_counter()
-    #WL_dist = repr_to_dist(degree_weighted_repr, frac_to_sample=0.05)
+    # WL_dist = repr_to_dist(degree_weighted_repr, frac_to_sample=0.05)
     WL_dist = repr_to_dist(degree_weighted_repr)
     end_time = time.perf_counter()
 
