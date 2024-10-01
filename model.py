@@ -1,3 +1,7 @@
+r"""File containing GCN model classes.
+"""
+
+from typing import Union
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -10,7 +14,7 @@ class GraphConvolution(nn.Module):
     """Simple GCN layer, similar to https://github.com/tkipf/pygcn"""
 
     def __init__(self, in_features, out_features, with_bias):
-        super(GraphConvolution, self).__init__()
+        super().__init__()
         self.in_features = in_features
         self.out_features = out_features
         self.weight = nn.Parameter(torch.FloatTensor(in_features, out_features))
@@ -25,7 +29,9 @@ class GraphConvolution(nn.Module):
         if self.bias is not None:
             self.bias.data.zero_()
 
-    def forward(self, x, adj):
+    def forward(
+        self, x: torch.Tensor, adj: Union[torch.Tensor, torch_sparse.SparseTensor]
+    ) -> torch.Tensor:
         """Graph Convolutional Layer forward function"""
         if x.data.is_sparse:
             support = torch.spmm(x, self.weight)
@@ -39,8 +45,7 @@ class GraphConvolution(nn.Module):
 
         if self.bias is not None:
             return output + self.bias
-        else:
-            return output
+        return output
 
     def __repr__(self):
         return (
@@ -54,6 +59,8 @@ class GraphConvolution(nn.Module):
 
 
 class GCN_inductive(nn.Module):
+    """A simple GCN"""
+
     def __init__(
         self,
         indim,
@@ -80,7 +87,10 @@ class GCN_inductive(nn.Module):
                     self.bns.append(nn.BatchNorm1d(hidim))
             self.layers.append(GraphConvolution(hidim, outdim, with_bias=with_bias))
 
-    def forward(self, x, adj):
+    def forward(
+        self, x: torch.Tensor, adj: Union[torch.Tensor, torch_sparse.SparseTensor]
+    ) -> torch.Tensor:
+        r"""GCN forward function"""
         for ix, layer in enumerate(self.layers):
             x = layer(x, adj)
             if ix != len(self.layers) - 1:
@@ -90,12 +100,15 @@ class GCN_inductive(nn.Module):
 
 
 class GCN(nn.Module):
+    """A simple 2 layered torch_geometric GCN"""
+
     def __init__(self, indim, outdim, *, hidim=128):
         super().__init__()
         self.l1 = gnn.GCNConv(indim, hidim)
         self.l2 = gnn.GCNConv(hidim, outdim)
 
-    def forward(self, x, edge_index):
+    def forward(self, x: torch.Tensor, edge_index: torch.Tensor) -> torch.Tensor:
+        r"""GCN forward function"""
         h = x
         h = F.relu(self.l1(h, edge_index))
         h = self.l2(h, edge_index)
@@ -103,12 +116,15 @@ class GCN(nn.Module):
 
 
 class GAT(nn.Module):
+    r"""A simple pytorch geometric GAT"""
+
     def __init__(self, indim, outdim, *, hidim=128):
         super().__init__()
         self.l1 = gnn.GATConv(indim, hidim)
         self.l2 = gnn.GATConv(hidim, outdim)
 
-    def forward(self, x, edge_index):
+    def forward(self, x: torch.Tensor, edge_index: torch.Tensor) -> torch.Tensor:
+        r"""GAT forward pass"""
         h = x
         h = F.relu(self.l1(h, edge_index))
         h = self.l2(h, edge_index)
@@ -116,12 +132,14 @@ class GAT(nn.Module):
 
 
 class GIN(nn.Module):
+    r"""A simple pytorch geometric GIN"""
+
     def __init__(self, indim, outdim, *, hidim=128):
         super().__init__()
         self.l1 = gnn.GINConv(nn.Linear(indim, hidim))
         self.l2 = gnn.GINConv(nn.Linear(hidim, outdim))
 
-    def forward(self, x, edge_index):
+    def forward(self, x: torch.Tensor, edge_index: torch.Tensor) -> torch.Tensor:
         h = x
         h = F.relu(self.l1(h, edge_index))
         h = self.l2(h, edge_index)

@@ -18,8 +18,6 @@ rotate_logs(){
 }
 datasets=("cora" "citeseer" "pubmed" "flickr" "ogbn-arxiv" "reddit")
 sizes=(0.005 0.01 0.03)
-datasets=("reddit")
-sizes=(0.005)
 for dataset in ${datasets[@]}
 do
   dsdir="logs/${dataset}"
