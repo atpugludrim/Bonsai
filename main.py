@@ -35,6 +35,7 @@ from utils import (
 )
 from utils import transform_features_with_tree
 from model import GCN, GCN_inductive
+from WL_Distance2 import compute_wl_representations
 
 
 ADJ = None
@@ -567,8 +568,10 @@ def main():
 
     t1 = time.perf_counter()
 
-    for node_id in tqdm(train, ncols=120, ascii=True, desc="WL reps"):
-        degree_weighted_repr.append(compute_degree_weighted_repr_for_node_orig(node_id))
+    # for node_id in tqdm(train, ncols=120, ascii=True, desc="WL reps"):
+    #     degree_weighted_repr.append(compute_degree_weighted_repr_for_node_orig(node_id))
+    degree_weighted_repr = compute_wl_representations(data.x, adj)
+    degree_weighted_repr = degree_weighted_repr[train]
     t2 = time.perf_counter()
 
     log("begin dtree")
