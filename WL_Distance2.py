@@ -7,6 +7,7 @@ import torch_sparse
 from torch_sparse import SparseTensor
 
 
+@torch.no_grad()
 def one_wl_forward(x, adj):
     if isinstance(adj, torch_sparse.SparseTensor):
         output = torch_sparse.matmul(adj, x)
