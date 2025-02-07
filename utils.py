@@ -34,36 +34,81 @@ def select_max_coverage_rknn_celf(rknn_dict: dict) -> List[int]:
     r"""https://www.cs.cmu.edu/~jure/pubs/detect-kdd07.pdf"""
     covered_nodes = set()
     selected_nodes = []
-
     # Initialize priority queue with initial marginal gains
-    pq = [(-len(neighbors), 0, node) for node, neighbors in rknn_dict.items()]
+    #print(f"init calc: {len(rknn_dict)}")
+    pq = [(-len(neighbors), node) for node, neighbors in rknn_dict.items()]
     heapq.heapify(pq)
-
-    iteration = 1
-
+    neg_gain, node = heapq.heappop(pq)
+    covered_nodes.update(rknn_dict[node])
+    selected_nodes.append(node)
     while pq:
         # Get the node with the highest marginal gain
-        neg_gain, last_iteration, node = heapq.heappop(pq)
-
-        # If this node's gain was last calculated in the current iteration, it's the best node
-        if last_iteration == iteration - 1:
-            # Early stopping: if the max coverage is zero, append remaining nodes and break
-            if neg_gain == 0:
-                selected_nodes.extend(node for _, _, node in pq)
-                selected_nodes.append(node)
-                break
-
-            # Add the selected node to the list and update the set of covered nodes
+        neg_gain, node = heapq.heappop(pq)
+        if neg_gain == 0:
+            selected_nodes.extend(node for _, node in pq)
             selected_nodes.append(node)
-            covered_nodes.update(rknn_dict[node])
-            del rknn_dict[node]
-            iteration += 1
-        else:
-            # Recalculate the marginal gain
-            new_gain = len(set(rknn_dict[node]) - covered_nodes)
-            heapq.heappush(pq, (-new_gain, iteration - 1, node))
-
+            break
+            # Add the selected node to the list and update the set of covered nodes
+        #print(f"Recalc: {node}")
+        new_gain = len(set(rknn_dict[node]) - covered_nodes)
+        max_gain, max_node = new_gain, node
+        if len(pq) != 0:
+            stale_gain, top_node = pq[0]
+            temp_list = [(new_gain, node)]
+            max_node_idx = 0
+            idx = 0
+            while new_gain < -stale_gain:
+                new_gain = len(set(rknn_dict[top_node]) - covered_nodes)
+                temp_list.append((new_gain, top_node))
+                idx += 1
+                if new_gain > max_gain:
+                    max_node_idx = idx
+                    max_gain = new_gain
+                    max_node = top_node
+                heapq.heappop(pq)
+                stale_gain, top_node = pq[0]
+            temp_list.pop(max_node_idx)
+            [heapq.heappush(pq, (-new_gain, node)) for new_gain, node in temp_list]
+        selected_nodes.append(max_node)
+        covered_nodes.update(rknn_dict[max_node])
+        del rknn_dict[max_node]
     return selected_nodes
+
+
+# def select_max_coverage_rknn_celf(rknn_dict: dict) -> List[int]:
+#     r"""https://www.cs.cmu.edu/~jure/pubs/detect-kdd07.pdf"""
+#     covered_nodes = set()
+#     selected_nodes = []
+# 
+#     # Initialize priority queue with initial marginal gains
+#     pq = [(-len(neighbors), 0, node) for node, neighbors in rknn_dict.items()]
+#     heapq.heapify(pq)
+# 
+#     iteration = 1
+# 
+#     while pq:
+#         # Get the node with the highest marginal gain
+#         neg_gain, last_iteration, node = heapq.heappop(pq)
+# 
+#         # If this node's gain was last calculated in the current iteration, it's the best node
+#         if last_iteration == iteration - 1:
+#             # Early stopping: if the max coverage is zero, append remaining nodes and break
+#             if neg_gain == 0:
+#                 selected_nodes.extend(node for _, _, node in pq)
+#                 selected_nodes.append(node)
+#                 break
+# 
+#             # Add the selected node to the list and update the set of covered nodes
+#             selected_nodes.append(node)
+#             covered_nodes.update(rknn_dict[node])
+#             del rknn_dict[node]
+#             iteration += 1
+#         else:
+#             # Recalculate the marginal gain
+#             new_gain = len(set(rknn_dict[node]) - covered_nodes)
+#             heapq.heappush(pq, (-new_gain, iteration - 1, node))
+# 
+#     return selected_nodes
 
 
 # Set environment variables to limit the number of threads
