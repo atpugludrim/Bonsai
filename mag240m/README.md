@@ -39,3 +39,7 @@ mag240m/
 ## Notes about dataset size
 
 Although MAG240M contains 240M nodes, only 1.4M of them have node labels. We have only condensed the train set created from these 1.4M nodes. The code can be used to generate a condensed set from the full 240M nodes as well, however, we have not performed that experiment yet.
+
+## Notes about HNSW
+
+For scalability, we use [HNSW](https://github.com/nmslib/hnswlib) for approximate k-Nearest Neighbors computation. This option can also be used for other datasets, if needed.

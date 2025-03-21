@@ -32,3 +32,16 @@ splits = {"train": idx_train, "val": idx_val, "test": idx_test}
 # MAG240M
 
 Please refer to the `mag240m` directory's `README` for the instructions.
+
+# How to cite this work
+
+```
+@inproceedings{
+gupta2025bonsai,
+title={Bonsai: Gradient-free Graph Condensation for Node Classification},
+author={Mridul Gupta and Samyak Jain and Vansh Ramani and Hariprasad Kodamana and Sayan Ranu},
+booktitle={The Thirteenth International Conference on Learning Representations},
+year={2025},
+url={https://openreview.net/forum?id=5x88lQ2MsH}
+}
+```
