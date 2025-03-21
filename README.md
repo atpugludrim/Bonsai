@@ -28,3 +28,7 @@ idx_train = rng.choice(train, size=int(0.7 * len(train)), replace=False)
 idx_val = list(set(range(nnodes)) - set(idx_train).union(set(idx_test)))
 splits = {"train": idx_train, "val": idx_val, "test": idx_test}
 ```
+
+# MAG240M
+
+Please refer to the `mag240m` directory's `README` for the instructions.
