@@ -80,7 +80,7 @@ def load_dataset(dataset_name: str, root: t.Union[str, Path]) -> dict:
     return {"data": data, "scaler": nop_scaler}
 
 
-def dist2rknn_sorting(WL_dist: np.ndarray, k: int) -> t.List[int]:
+def dist2rknn_sorting(WL_dist: np.ndarray, sampled_nodes: np.ndarray, k: int) -> t.List[int]:
     r"""Converts WL Distance matrix into nodes sorted jointly by rev-k-nn
     and max-coverage.
     Params:
@@ -89,7 +89,7 @@ def dist2rknn_sorting(WL_dist: np.ndarray, k: int) -> t.List[int]:
     returns: a list of integers representing node ids sorted in order of
              preference.
     """
-    rknn_result = wl2rknn(WL_dist, k=k)
+    rknn_result = wl2rknn(WL_dist, sampled_nodes=sampled_nodes, k=k)
     sorted_nodes = select_max_coverage_rknn_celf(rknn_result["rknn"])
     return sorted_nodes
 
@@ -367,7 +367,7 @@ def compute_degree_weighted_repr_for_node_orig(node_id: int) -> torch.Tensor:
 
 def repr_to_dist(
     degree_weighted_repr: t.List[torch.Tensor], frac_to_sample: int = 1
-) -> np.ndarray:
+) -> t.Tuple[np.ndarray, np.ndarray]:
     r"""Converts WL Representations to WL Distances.
     Params:
     degree_weighted_repr: List[torch.Tensor] - list of WL representations
@@ -378,6 +378,7 @@ def repr_to_dist(
         distance_matrix = pairwise_distances(
             np.array(degree_weighted_repr), n_jobs=20
         )
+        nodes = np.asarray(list(range(len(degree_weighted_repr))))
     else:
         n = len(degree_weighted_repr)
         m = min(max(int(frac_to_sample * n), 1), n)
@@ -386,8 +387,7 @@ def repr_to_dist(
         distance_matrix = pairwise_distances(
             np.array(node_repr), np.array(degree_weighted_repr), n_jobs=20
         )
-        distance_matrix = np.transpose(distance_matrix)
-    return distance_matrix
+    return distance_matrix, nodes
 
 
 def match_distribution(
@@ -468,8 +468,16 @@ def match_distribution(
                     break
 
         elif current_count > upper_bound:  # Need to remove nodes
+
+            # for sampling
+            def sort_key(node):
+                try:
+                    return rknn_ranked_nodes.index(node)
+                except ValueError:
+                    return float('inf') # place at the end
+
             merged_class_nodes_sorted = sorted(
-                merged_class_nodes, key=lambda node: rknn_ranked_nodes.index(node)
+                merged_class_nodes, key=lambda node: sort_key(node)
             )
             # Remove nodes starting from the rightmost end
             nodes_to_remove = merged_class_nodes_sorted[
@@ -611,15 +619,15 @@ def main():
     log("Creating WL now")
 
     start_time = time.perf_counter()
-    # WL_dist = repr_to_dist(degree_weighted_repr, frac_to_sample=0.05)
-    WL_dist = repr_to_dist(degree_weighted_repr)
+    # WL_dist, sampled_nodes = repr_to_dist(degree_weighted_repr, frac_to_sample=0.05)
+    WL_dist, sampled_nodes = repr_to_dist(degree_weighted_repr)
     end_time = time.perf_counter()
 
     log("Created WL now")
 
     log(f"Time taken: {end_time - start_time:.6f} seconds")
 
-    sorted_nodes = dist2rknn_sorting(WL_dist, args.k)
+    sorted_nodes = dist2rknn_sorting(WL_dist, sampled_nodes, args.k)
     accs = {}
     del WL_dist
     # Force the garbage collector to free up the memory

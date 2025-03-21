@@ -12,18 +12,18 @@ import torch
 from torch_geometric.data import Data
 
 
-def wl2rknn(WL_distances: np.ndarray, *, k: int) -> dict:
+def wl2rknn(WL_distances: np.ndarray, *, sampled_nodes: np.ndarray, k: int) -> dict:
     r"""Compute rev-k-nn's from WL distances."""
     assert isinstance(WL_distances, np.ndarray)
-    nnodes = WL_distances.shape[0]
+    sampled_nnodes_ind = WL_distances.shape[0]
     knn = []
     # nnodes is len(WL_distances), that is same index as WL_distances.
-    for node in tqdm(range(nnodes), desc="Eval KNN", ascii=True, ncols=120):
+    for node in tqdm(range(sampled_nnodes_ind), desc="Eval KNN", ascii=True, ncols=120):
         topk = np.argpartition(WL_distances[node], k)[:k]
         knn.append(topk)
     rknn = defaultdict(set)
     for node, knn_node in tqdm(enumerate(knn), desc="Eval rKNN", ascii=True, ncols=120):
-        _ = [rknn[q].add(node) for q in knn_node]
+        _ = [rknn[q].add(sampled_nodes[node]) for q in knn_node]
         del _
     # rknn has as index the same index as WL_distances
     # the index is used in two places, rknn key and rknn values
